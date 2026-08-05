@@ -6,12 +6,26 @@ import { Document } from "@langchain/core/documents";
 import data from "./data.js";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
+import { PGVectorStore } from "@langchain/community/vectorstores/pgvector";
+
 const embeddings = new HuggingFaceInferenceEmbeddings({
   apiKey: process.env.HUGGINGFACEHUB_API_KEY,
   model: "BAAI/bge-base-en-v1.5",
 });
 
-export const vectorStore = new MemoryVectorStore(embeddings);
+export const vectorStore = await PGVectorStore.initialize(embeddings, {
+  postgresConnectionOptions: {
+    connectionString: process.env.DB_URL,
+  },
+  tableName: "transcripts",
+  columns: {
+    idColumnName: "id",
+    vectorColumnName: "vector",
+    contentColumnName: "text",
+    metaColumnName: "metadata",
+  },
+  distanceStrategy: "cosine", // it means that the similarity between two vectors is measured by the cosine of the angle between them. A smaller angle (closer to 0 degrees) indicates higher similarity, while a larger angle (closer to 90 degrees) indicates lower similarity.
+});
 
 export const addYTVideoToVectorStore = async (videoData) => {
   const { video_id, transcript } = videoData;

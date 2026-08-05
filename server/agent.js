@@ -23,11 +23,9 @@ const retrievetool = tool(
   async ({ query }, { configurable: { video_id } }) => {
     console.log("Tool Query:", query);
     console.log("Tool Video ID:", video_id);
-    const result = await vectorStore.similaritySearch(
-      query,
-      5,
-      (doc) => doc.metadata.video_id === video_id,
-    );
+    const result = await vectorStore.similaritySearch(query, 5, {
+      video_id,
+    });
     return result.map((doc) => doc.pageContent).join("\n");
   },
   {
@@ -56,25 +54,8 @@ const llm = new ChatGroq({
 
 const memory = new MemorySaver();
 
-const agent = createReactAgent({
+export const agent = createReactAgent({
   llm,
   tools: [retrievetool],
   checkpoint: memory,
 });
-
-const video_id = "Rwt8wmhzCS8";
-
-const results = await agent.invoke(
-  {
-    messages: [
-      {
-        role: "user",
-        content: "What is the main topic of the video?",
-      },
-    ],
-  },
-  { configurable: { thread_id: 1, video_id } },
-);
-console.log(results.messages.at(-1).content);
-
-// 46
