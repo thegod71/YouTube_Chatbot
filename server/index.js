@@ -38,6 +38,11 @@ app.post("/generate", async (req, res) => {
   res.json(results.messages.at(-1).content);
 });
 
+app.post("/webhook", (req, res) => {
+  console.log("Received webhook request:", req.body);
+  res.status(200).send("Webhook received");
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
